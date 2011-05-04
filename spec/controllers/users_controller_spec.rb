@@ -35,9 +35,10 @@ describe UsersController do
       response.should have_selector("h1>img", :class => "gravatar")
     end
 
-  end
+  end # describe "GET 'show'" do
 
   describe "GET 'new'" do
+
     it "should be successful" do
       get 'new'
       response.should be_success
@@ -67,9 +68,11 @@ describe UsersController do
       get :new
       response.should have_selector("input[name='user[password_confirmation]'][type='password']")
     end
+
   end # describe "GET 'new'"
 
   describe "POST 'create'" do
+
     describe "failure" do
 
       before(:each) do
@@ -93,32 +96,38 @@ describe UsersController do
         response.should render_template('new')
       end
       
-    end
-  end # describe "POST 'create'"
+    end # describe "failure" do
 
-  describe "success" do
+    describe "success" do
 
-    before(:each) do
-      @attr = { :name => "New User", :email => "user@example.com",
-                    :password => "foobar", :password_confirmation => "foobar" }
-    end
+      before(:each) do
+        @attr = { :name => "New User", :email => "user@example.com",
+          :password => "foobar", :password_confirmation => "foobar" }
+      end
 
-    it "should create a user" do
-      lambda do
+      it "should create a user" do
+        lambda do
+          post :create, :user => @attr
+        end.should change(User, :count).by(1)
+      end
+      
+      it "should redirect to the user show page" do
         post :create, :user => @attr
-      end.should change(User, :count).by(1)
-    end
+        response.should redirect_to(user_path(assigns(:user)))
+      end
+      
+      it "should have a welcome message" do
+        post :create, :user => @attr
+        flash[:success].should =~ /welcome to the sample app/i
+      end
+      
+      it "should sign the user in" do
+        post :create, :user => @attr
+        controller.should be_signed_in
+      end
 
-    it "should redirect to the user show page" do
-      post :create, :user => @attr
-      response.should redirect_to(user_path(assigns(:user)))
-    end
+    end # describe "success"
 
-    it "should have a welcome message" do
-      post :create, :user => @attr
-      flash[:success].should =~ /welcome to the sample app/i
-    end
-
-  end # describe "success"
+  end # describe "POST 'create'"
 
 end
