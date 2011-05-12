@@ -174,18 +174,40 @@ describe UsersController do
 
   end # describe "POST 'create'"
 
+  describe "GET 'edit'" do
+    before(:each) do
+      @user = Factory(:user)
+      test_sign_in(@user)
+    end
+
+    it "should be successful" do
+      get :edit, :id => @user
+      response.should be_success
+    end
+
+    it "should have the right title" do
+      get :edit, :id => @user
+      response.should have_selector("title", :content => "Edit user")
+    end
+
+    it "should have a link to change the Gravatar" do
+      get :edit, :id => @user
+      gravatar_url = "http://gravatar.com/emails"
+      response.should have_selector("a", :href => gravatar_url,
+                                    :content => "change")
+    end
+  end # describe "GET 'edit'" do
+
   describe "PUT 'update'" do
-    
     before(:each) do
       @user = Factory(:user)
       test_sign_in(@user)
     end
 
     describe "failure" do
-
       before(:each) do
         @attr = { :email => "", :name => "", :password => "",
-          :password_confirmation => "" }
+        :password_confirmation => "" }
       end
 
       it "should render the 'edit' page" do
@@ -197,13 +219,12 @@ describe UsersController do
         put :update, :id => @user, :user => @attr
         response.should have_selector("title", :content => "Edit user")
       end
-
-    end # describe "failure"
+    end
 
     describe "success" do
       before(:each) do
         @attr = { :name => "New Name", :email => "user@example.org",
-          :password => "barbaz", :password_confirmation => "barbaz" }
+        :password => "barbaz", :password_confirmation => "barbaz" }
       end
 
       it "should change the user's attributes" do
@@ -213,30 +234,22 @@ describe UsersController do
         @user.email.should == @attr[:email]
       end
 
-      it "should redirect to the user show page" do
-        put :update, :id => @user, :user => @attr
-        response.should redirect_to(user_path(@user))
-      end
-
       it "should have a flash message" do
         put :update, :id => @user, :user => @attr
         flash[:success].should =~ /updated/
       end
+    end
 
-    end # describe "success"
-    
-  end # describe "PUT 'update'"
+  end # describe "PUT 'update'" do
 
   describe "authentication of edit/update pages" do
-
     before(:each) do
       @user = Factory(:user)
     end
-    
+
     describe "for non-signed-in users" do
-      
       it "should deny access to 'edit'" do
-        get :edit, :id => @user
+        put :edit, :id => @user
         response.should redirect_to(signin_path)
       end
 
@@ -244,9 +257,8 @@ describe UsersController do
         put :update, :id => @user, :user => {}
         response.should redirect_to(signin_path)
       end
-
     end
-    
+
     describe "for signed-in users" do
       before(:each) do
         wrong_user = Factory(:user, :email => "user@example.net")
@@ -259,12 +271,11 @@ describe UsersController do
       end
 
       it "should require matching users for 'update'" do
-        put :update, :id => @user, :user => {}
+        get :update, :id => @user, :user => {}
         response.should redirect_to(root_path)
       end
-    end # describe "for signed-in users"
-    
-  end # describe "authentication of edit/update pages"
+    end
 
+  end # describe "authentication of edit/update pages"
 
 end
